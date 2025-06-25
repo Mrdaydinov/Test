@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Демонстрация интерфейса WPF приложения</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .window-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 800px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .title-bar {
+            background: #f0f0f0;
+            padding: 8px 16px;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-text {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .control-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #28ca42; }
+        .close { background: #ff5f56; }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .app-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .group-box {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 15px;
+            background: #fafafa;
+        }
+
+        .group-header {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+            background: white;
+            padding: 0 8px;
+            position: relative;
+            top: -23px;
+            left: 5px;
+            width: fit-content;
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 10px;
+        }
+
+        .form-label {
+            width: 150px;
+            font-weight: 600;
+            color: #555;
+            flex-shrink: 0;
+        }
+
+        .form-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+            transform: scale(1.02);
+        }
+
+        .textarea-input {
+            height: 60px;
+            resize: vertical;
+        }
+
+        .date-input {
+            width: 200px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #4A90E2;
+            color: white;
+            min-width: 180px;
+        }
+
+        .btn-primary:hover {
+            background: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            min-width: 120px;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+
+        .preview-window {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            width: 600px;
+            height: 700px;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+
+        .preview-visible {
+            display: flex;
+        }
+
+        .preview-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-title {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .preview-content {
+            flex: 1;
+            padding: 20px;
+            background: #f5f5f5;
+            overflow-y: auto;
+        }
+
+        .document-preview {
+            background: white;
+            padding: 40px;
+            border: 1px solid #000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px;
+            min-height: 500px;
+        }
+
+        .doc-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        .doc-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        .doc-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .doc-field {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .field-label {
+            width: 120px;
+            font-weight: 500;
+        }
+
+        .field-value {
+            flex: 1;
+            border-bottom: 1px solid #999;
+            padding-bottom: 2px;
+            min-height: 16px;
+        }
+
+        .doc-signature {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .preview-buttons {
+            padding: 15px 20px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            gap: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.visible {
+            display: block;
+        }
+
+        .demo-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .demo-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 2px;
+            font-size: 12px;
+        }
+
+        .demo-btn:hover {
+            background: #218838;
+        }
+
+        .filled-input {
+            background-color: #f8f9fa !important;
+            color: #495057 !important;
+        }
+
+        @keyframes fillAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .fill-animation {
+            animation: fillAnimation 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-controls">
+        <div style="margin-bottom: 10px; font-weight: bold; font-size: 14px;">Демо функции:</div>
+        <button class="demo-btn" id="fillBtn">Заполнить данными</button>
+        <button class="demo-btn" id="clearBtn">Очистить</button>
+        <button class="demo-btn" id="previewBtn">Показать просмотр</button>
+    </div>
+
+    <div class="window-container">
+        <div class="title-bar">
+            <div class="title-text">Печать шаблонных документов</div>
+            <div class="window-controls">
+                <button class="control-btn minimize"></button>
+                <button class="control-btn maximize"></button>
+                <button class="control-btn close"></button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <h1 class="app-title">Заполнение шаблона документа</h1>
+            
+            <div class="form-container">
+                <!-- Основная информация -->
+                <div class="group-box">
+                    <div class="group-header">Основная информация</div>
+                    <div class="form-row">
+                        <label class="form-label">Фамилия:</label>
+                        <input type="text" class="form-input" id="lastName" placeholder="Введите фамилию">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Имя:</label>
+                        <input type="text" class="form-input" id="firstName" placeholder="Введите имя">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Отчество:</label>
+                        <input type="text" class="form-input" id="middleName" placeholder="Введите отчество">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Дата рождения:</label>
+                        <input type="date" class="form-input date-input" id="birthDate">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Должность:</label>
+                        <input type="text" class="form-input" id="position" placeholder="Введите должность">
+                    </div>
+                </div>
+
+                <!-- Контактная информация -->
+                <div class="group-box">
+                    <div class="group-header">Контактная информация</div>
+                    <div class="form-row">
+                        <label class="form-label">Телефон:</label>
+                        <input type="tel" class="form-input" id="phone" placeholder="+7 (999) 123-45-67">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Email:</label>
+                        <input type="email" class="form-input" id="email" placeholder="example@mail.com">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Адрес:</label>
+                        <textarea class="form-input textarea-input" id="address" placeholder="Введите полный адрес"></textarea>
+                    </div>
+                </div>
+
+                <!-- Дополнительная информация -->
+                <div class="group-box">
+                    <div class="group-header">Дополнительная информация</div>
+                    <div class="form-row">
+                        <label class="form-label">Номер документа:</label>
+                        <input type="text" class="form-input" id="documentNumber" placeholder="№ 001">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Примечания:</label>
+                        <textarea class="form-input textarea-input" id="notes" placeholder="Дополнительные примечания"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button class="btn btn-primary" id="mainPreviewBtn">Предварительный просмотр</button>
+                <button class="btn btn-secondary" id="printBtn">Печать</button>
+                <button class="btn btn-secondary" id="mainClearBtn">Очистить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Окно предварительного просмотра -->
+    <div class="overlay" id="overlay"></div>
+    <div class="preview-window" id="previewWindow">
+        <div class="preview-header">
+            <div class="preview-title">Предварительный просмотр</div>
+        </div>
+        <div class="preview-content">
+            <div class="document-preview">
+                <div class="doc-title">Информационная карта сотрудника</div>
+                
+                <div class="doc-header">
+                    <span>Документ №: <span id="preview-docNumber">001</span></span>
+                    <span>Дата: <span id="preview-date">25.06.2025</span></span>
+                </div>
+
+                <hr style="margin: 20px 0; border: 1px solid #000;">
+
+                <div class="doc-section">
+                    <div class="section-title">Персональные данные</div>
+                    <div class="doc-field">
+                        <div class="field-label">Фамилия:</div>
+                        <div class="field-value" id="preview-lastName"></div>
+                    </div>
+                    <div class="doc-field">
+                        <div class="field-label">Имя:</div>
+                        <div class="field-value" id="preview-firstName"></div>
+                    </div>
+                    <div class="doc-field">
+                        <div class="field-label">Отчество:</div>
+                        <div class="field-value" id="preview-middleName"></div>
+                    </div>
+                    <div class="doc-field">
+                        <div class="field-label">Дата рождения:</div>
+                        <div class="field-value" id="preview-birthDate"></div>
+                    </div>
+                </div>
+
+                <div class="doc-section">
+                    <div class="section-title">Служебная информация</div>
+                    <div class="doc-field">
+                        <div class="field-label">Должность:</div>
+                        <div class="field-value" id="preview-position"></div>
+                    </div>
+                </div>
+
+                <div class="doc-section">
+                    <div class="section-title">Контактная информация</div>
+                    <div class="doc-field">
+                        <div class="field-label">Телефон:</div>
+                        <div class="field-value" id="preview-phone"></div>
+                    </div>
+                    <div class="doc-field">
+                        <div class="field-label">Email:</div>
+                        <div class="field-value" id="preview-email"></div>
+                    </div>
+                    <div class="doc-field">
+                        <div class="field-label">Адрес:</div>
+                        <div class="field-value" id="preview-address" style="height: auto; min-height: 40px; white-space: pre-wrap;"></div>
+                    </div>
+                </div>
+
+                <div class="doc-section" id="notesSection" style="display: none;">
+                    <div class="section-title">Примечания</div>
+                    <div class="field-value" id="preview-notes" style="height: auto; min-height: 60px; white-space: pre-wrap;"></div>
+                </div>
+
+                <div class="doc-signature">
+                    <span>Подпись: ___________________</span>
+                    <span>Дата заполнения: <span id="preview-currentDate">25.06.2025</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="preview-buttons">
+            <button class="btn btn-primary" id="previewPrintBtn">Печать</button>
+            <button class="btn btn-secondary" id="closePreviewBtn">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        // Ждем загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Функция заполнения тестовыми данными
+            function fillSampleData() {
+                const sampleData = {
+                    'lastName': 'Иванов',
+                    'firstName': 'Иван',
+                    'middleName': 'Иванович',
+                    'birthDate': '1985-03-15',
+                    'position': 'Менеджер по продажам',
+                    'phone': '+7 (495) 123-45-67',
+                    'email': 'ivanov@company.com',
+                    'address': 'г. Москва, ул. Примерная, д. 123, кв. 45',
+                    'documentNumber': '001/2025',
+                    'notes': 'Примечание: сотрудник принят на испытательный срок'
+                };
+
+                Object.keys(sampleData).forEach((key, index) => {
+                    setTimeout(() => {
+                        const element = document.getElementById(key);
+                        if (element) {
+                            element.value = sampleData[key];
+                            element.classList.add('filled-input', 'fill-animation');
+                            setTimeout(() => {
+                                element.classList.remove('fill-animation');
+                            }, 300);
+                        }
+                    }, index * 100);
+                });
+            }
+
+            // Функция очистки данных
+            function clearData() {
+                const inputs = document.querySelectorAll('.form-input');
+                inputs.forEach(input => {
+                    input.value = '';
+                    input.classList.remove('filled-input');
+                });
+            }
+
+            // Функция показа предварительного просмотра
+            function showPreview() {
+                const data = {
+                    lastName: document.getElementById('lastName').value,
+                    firstName: document.getElementById('firstName').value,
+                    middleName: document.getElementById('middleName').value,
+                    birthDate: formatDate(document.getElementById('birthDate').value),
+                    position: document.getElementById('position').value,
+                    phone: document.getElementById('phone').value,
+                    email: document.getElementById('email').value,
+                    address: document.getElementById('address').value,
+                    documentNumber: document.getElementById('documentNumber').value,
+                    notes: document.getElementById('notes').value
+                };
+
+                // Заполняем предварительный просмотр
+                document.getElementById('preview-docNumber').textContent = data.documentNumber || '001';
+                document.getElementById('preview-lastName').textContent = data.lastName;
+                document.getElementById('preview-firstName').textContent = data.firstName;
+                document.getElementById('preview-middleName').textContent = data.middleName;
+                document.getElementById('preview-birthDate').textContent = data.birthDate;
+                document.getElementById('preview-position').textContent = data.position;
+                document.getElementById('preview-phone').textContent = data.phone;
+                document.getElementById('preview-email').textContent = data.email;
+                document.getElementById('preview-address').textContent = data.address;
+                document.getElementById('preview
